@@ -2,7 +2,7 @@
 name = "oidcrs"
 authors = ["Cristian A. Enguídanos Nebot <cristian.enguidanos.nebot@gmail.com>"]
 description = "Full Spec Compliant OIDC Library"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 readme = "README.md"
 license = "Apache-2.0"
