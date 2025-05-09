@@ -77,50 +77,50 @@ impl IDToken {
     /// Clients MUST validate the ID Token in the Token Response in the following manner:
     ///
     /// 1. If the ID Token is encrypted, decrypt it using the keys and algorithms that the Client specified during
-    /// Registration that the OP was to use to encrypt the ID Token. If encryption was negotiated with the OP at
-    /// Registration time and the ID Token is not encrypted, the RP SHOULD reject it.
+    ///    Registration that the OP was to use to encrypt the ID Token. If encryption was negotiated with the OP at
+    ///    Registration time and the ID Token is not encrypted, the RP SHOULD reject it.
     ///
     /// 2. The Issuer Identifier for the OpenID Provider (which is typically obtained during Discovery) MUST
-    /// exactly match the value of the `iss` (issuer) Claim.
+    ///    exactly match the value of the `iss` (issuer) Claim.
     ///
     /// 3. The Client MUST validate that the `aud` (audience) Claim contains its `client_id` value registered at
-    /// the Issuer identified by the `iss` (issuer) Claim as an audience. The `aud` (audience) Claim MAY contain
-    /// an array with more than one element. The ID Token MUST be rejected if the ID Token does not list the Client
-    /// as a valid audience, or if it contains additional audiences not trusted by the Client.
+    ///    the Issuer identified by the `iss` (issuer) Claim as an audience. The `aud` (audience) Claim MAY contain
+    ///    an array with more than one element. The ID Token MUST be rejected if the ID Token does not list the Client
+    ///    as a valid audience, or if it contains additional audiences not trusted by the Client.
     ///
     /// 4. If the implementation is using extensions (which are beyond the scope of this specification) that result
-    /// in the `azp` (authorized party) Claim being present, it SHOULD validate the `azp` value as specified by those extensions.
+    ///    in the `azp` (authorized party) Claim being present, it SHOULD validate the `azp` value as specified by those extensions.
     ///
     /// 5. This validation MAY include that when an `azp` (authorized party) Claim is present, the Client SHOULD verify
-    /// that its `client_id` is the Claim Value.
+    ///    that its `client_id` is the Claim Value.
     ///
     /// 6. If the ID Token is received via direct communication between the Client and the Token Endpoint (which it is in this flow),
-    /// the TLS server validation MAY be used to validate the issuer in place of checking the token signature.
-    /// The Client MUST validate the signature of all other ID Tokens according to [JWS](https://openid.net/specs/openid-connect-core-1_0.html#JWS)
-    /// using the algorithm specified in the JWT `alg` Header Parameter. The Client MUST use the keys provided by the Issuer.
+    ///    the TLS server validation MAY be used to validate the issuer in place of checking the token signature.
+    ///    The Client MUST validate the signature of all other ID Tokens according to [JWS](https://openid.net/specs/openid-connect-core-1_0.html#JWS)
+    ///    using the algorithm specified in the JWT `alg` Header Parameter. The Client MUST use the keys provided by the Issuer.
     ///
     /// 7. The `alg` value SHOULD be the default of `RS256` or the algorithm sent by the Client in the `id_token_signed_response_alg` parameter during Registration.
     ///
     /// 8. If the JWT `alg` Header Parameter uses a MAC based algorithm such as `HS256`, `HS384`, or `HS512`, the octets of
-    /// the UTF-8 [RFC3629](https://openid.net/specs/openid-connect-core-1_0.html#RFC3629) representation of the `client_secret` corresponding
-    /// to the `client_id` contained in the `aud` (audience) Claim are used as the key to validate the signature.
-    /// For MAC based algorithms, the behavior is unspecified if the `aud` is multi-valued.
+    ///    the UTF-8 [RFC3629](https://openid.net/specs/openid-connect-core-1_0.html#RFC3629) representation of the `client_secret` corresponding
+    ///    to the `client_id` contained in the `aud` (audience) Claim are used as the key to validate the signature.
+    ///    For MAC based algorithms, the behavior is unspecified if the `aud` is multi-valued.
     ///
     /// 9. The current time MUST be before the time represented by the `exp` Claim.
     ///
     /// 10. The `iat` Claim can be used to reject tokens that were issued too far away from the current time, limiting the
-    /// amount of time that nonces need to be stored to prevent attacks. The acceptable range is Client specific.
+    ///     amount of time that nonces need to be stored to prevent attacks. The acceptable range is Client specific.
     ///
     /// 11. If a nonce value was sent in the Authentication Request, a `nonce` Claim MUST be present and its value checked to
-    /// verify that it is the same value as the one that was sent in the Authentication Request. The Client SHOULD check the
-    /// `nonce` value for replay attacks. The precise method for detecting replay attacks is Client specific.
+    ///     verify that it is the same value as the one that was sent in the Authentication Request. The Client SHOULD check the
+    ///     `nonce` value for replay attacks. The precise method for detecting replay attacks is Client specific.
     ///
     /// 12. If the `acr` Claim was requested, the Client SHOULD check that the asserted Claim Value is appropriate.
-    /// The meaning and processing of `acr` Claim Values is out of scope for this specification.
+    ///     The meaning and processing of `acr` Claim Values is out of scope for this specification.
     ///
     /// 13. If the `auth_time` Claim was requested, either through a specific request for this Claim or by using the `max_age`
-    /// parameter, the Client SHOULD check the `auth_time` Claim value and request re-authentication if it determines too much
-    /// time has elapsed since the last End-User authentication.
+    ///     parameter, the Client SHOULD check the `auth_time` Claim value and request re-authentication if it determines too much
+    ///     time has elapsed since the last End-User authentication.
     ///
     pub fn validate(&self) -> anyhow::Result<()> {
         Ok(())
@@ -221,14 +221,17 @@ impl Deref for Audience {
     }
 }
 
-impl Audience {
-    pub fn from_str(s: &str) -> Self {
-        Self { value: vec![s.into()] }
-    }
-
-    pub fn from_slice(s: &[&str]) -> Self {
+impl From<&str> for Audience {
+    fn from(value: &str) -> Self {
         Self {
-            value: s.to_owned().into_iter().map(|n| n.to_owned()).collect(),
+            value: vec![value.into()],
+        }
+    }
+}
+impl From<&[&str]> for Audience {
+    fn from(value: &[&str]) -> Self {
+        Self {
+            value: value.iter().copied().map(|n| n.to_owned()).collect(),
         }
     }
 }
@@ -369,8 +372,8 @@ impl Deref for Nonce {
     }
 }
 
-impl Nonce {
-    pub fn new() -> Self {
+impl Default for Nonce {
+    fn default() -> Self {
         let mut buffer = [0u8; 12];
         rand::rng().fill_bytes(&mut buffer);
 

@@ -146,7 +146,7 @@ impl AuthorizationCodeFlowClient {
 
     pub async fn prepare_authentication_request(&self) -> anyhow::Result<Url> {
         let conf = config::OpenIDConfiguration::from_remote(&self.http, &self.oidc_uri).await?;
-        let request_params = vec![(RequestParameters::ResponseType.to_string(), self.flow.as_reponse_type())];
+        let request_params = [(RequestParameters::ResponseType.to_string(), self.flow.as_reponse_type())];
         let mut authorization_endpoint = Url::parse(&conf.authorization_endpoint)?;
 
         for (key, value) in request_params.iter() {
@@ -159,7 +159,7 @@ impl AuthorizationCodeFlowClient {
     pub async fn do_authentication_token_request(&self, code: &str) -> anyhow::Result<AuthorizationCodeFlowTokenResponse> {
         let conf = config::OpenIDConfiguration::from_remote(&self.http, &self.oidc_uri).await?;
         let mut token_endpoint = Url::parse(&conf.token_endpoint)?;
-        let request_params = vec![(RequestParameters::Code.to_string(), code)];
+        let request_params = [(RequestParameters::Code.to_string(), code)];
 
         for (key, value) in request_params.iter() {
             token_endpoint.query_pairs_mut().append_pair(key, value);
