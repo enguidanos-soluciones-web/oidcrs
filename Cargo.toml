@@ -1,7 +1,14 @@
 [package]
 name = "oidcrs"
+authors = ["Cristian A. Enguídanos Nebot <cristian.enguidanos.nebot@gmail.com>"]
+description = "Full Spec Compliant OIDC Library"
 version = "0.1.0"
 edition = "2024"
+readme = "README.md"
+license-file = "LICENSE.txt"
+repository = "https://github.com/enguidanos-soluciones-web/oidcrs"
+keywords = ["oidc", "oauth", "rfc"]
+categories = ["api-bindings", "asynchronous", "authentication"]
 
 [dependencies]
 anyhow = { version = "1.0.98" }
@@ -17,3 +24,6 @@ url = { version = "2.5.4" }
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
+
+[lints.rust]
+unsafe_code = "forbid"
