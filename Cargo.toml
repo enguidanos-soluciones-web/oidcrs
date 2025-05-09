@@ -5,6 +5,7 @@ description = "Full Spec Compliant OIDC Library"
 version = "0.1.0"
 edition = "2024"
 readme = "README.md"
+license = "Apache-2.0"
 license-file = "LICENSE.txt"
 repository = "https://github.com/enguidanos-soluciones-web/oidcrs"
 keywords = ["oidc", "oauth", "rfc"]
