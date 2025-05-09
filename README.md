@@ -1,0 +1,37 @@
+# OIDCRS
+
+Full Spec Compliant OIDC Library.
+
+Work in Progress. Please, don't use it in production.
+
+## Examples
+
+##### The Authorization Code Flow.
+
+1. Client prepares an Authentication Request containing the desired request parameters.
+2. Client sends the request to the Authorization Server.
+3. Authorization Server Authenticates the End-User.
+4. Authorization Server obtains End-User Consent/Authorization.
+5. Authorization Server sends the End-User back to the Client with an Authorization Code.
+6. Client requests a response using the Authorization Code at the Token Endpoint.
+7. Client receives a response that contains an ID Token and Access Token in the response body.
+8. Client validates the ID token and retrieves the End-User's Subject Identifier.
+
+```rs
+let oidc_uri = "https://_/.well-known/openid-configuration";
+
+let client = AuthorizationCodeFlowClient::new(oidc_uri);
+let authentication_request = client.prepare_authentication_request().await?;
+
+// redirect the user to the `authentication_request` the first time
+
+let authentication_code = client.extract_authentication_code(&returned_url)?;
+let authentication_tokens = client.do_authentication_token_request(&authentication_code).await?;
+
+println!("{}", authentication_tokens.id_token);
+println!("{}", authentication_tokens.access_token);
+```
+
+## RFCs
+
+- [OpenID Connect Core](https://openid.net/specs/openid-connect-core-1_0.html)
