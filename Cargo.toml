@@ -9,6 +9,7 @@ license-file = "LICENSE.txt"
 repository = "https://github.com/enguidanos-soluciones-web/oidcrs"
 keywords = ["oidc", "oauth", "rfc"]
 categories = ["api-bindings", "asynchronous", "authentication"]
+exclude = ["Makefile", "scripts"]
 
 [dependencies]
 anyhow = { version = "1.0.98" }
