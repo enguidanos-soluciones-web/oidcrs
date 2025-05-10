@@ -6,7 +6,6 @@ version = "0.1.1"
 edition = "2024"
 readme = "README.md"
 license = "Apache-2.0"
-license-file = "LICENSE.txt"
 repository = "https://github.com/enguidanos-soluciones-web/oidcrs"
 keywords = ["oidc", "oauth", "rfc"]
 categories = ["api-bindings", "asynchronous", "authentication"]
@@ -25,7 +24,9 @@ tracing = { version = "0.1.41" }
 url = { version = "2.5.4" }
 
 [dev-dependencies]
+axum = "0.8.4"
 pretty_assertions = "1.4.1"
+tokio = { version = "1.45.0", features = ["full"] }
 
 [lints.rust]
 unsafe_code = "forbid"
