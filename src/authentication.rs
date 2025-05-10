@@ -209,11 +209,11 @@ pub mod authorization_code_flow {
     ///
     ///     // redirect the user to the `authorization_endpoint` the first time
     ///
-    ///     let authentication_code = client.extract_authentication_code(&returned_url)?;
-    ///     let authentication_tokens = client.do_authentication_token_request(&authentication_code).await?;
+    ///     let authorization_code = client.extract_authorization_code(&returned_url)?;
+    ///     let authorization_tokens = client.fetch_authorization_tokens(&authorization_code).await?;
     ///
-    ///     println!("{}", authentication_tokens.id_token);
-    ///     println!("{}", authentication_tokens.access_token);
+    ///     println!("{}", authorization_tokens.id_token);
+    ///     println!("{}", authorization_tokens.access_token);
     ///
     /// ```
     #[non_exhaustive]
@@ -302,7 +302,7 @@ pub mod authorization_code_flow {
             Ok(authorization_endpoint)
         }
 
-        pub async fn do_authentication_token_request(&self, code: &str) -> anyhow::Result<AuthorizationCodeFlowTokenResponse> {
+        pub async fn fetch_authorization_tokens(&self, code: &str) -> anyhow::Result<AuthorizationCodeFlowTokenResponse> {
             let conf = config::OpenIDConfiguration::from_remote(&self.http, &self.oidc_uri).await?;
             let mut token_endpoint = Url::parse(&conf.token_endpoint)?;
             let request_params = [(AuthenticationRequestParameters::Code.to_string(), code)];
@@ -324,7 +324,7 @@ pub mod authorization_code_flow {
             Ok(token_response)
         }
 
-        pub fn extract_authentication_code(&self, url: &str) -> anyhow::Result<String> {
+        pub fn extract_authorization_code(&self, url: &str) -> anyhow::Result<String> {
             let url = Url::parse(url)?;
 
             let Some(code) = url.query_pairs().find(|n| n.0 == "code") else {

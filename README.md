@@ -29,11 +29,11 @@ let authorization_endpoint = client.build_authorization_endpoint().await?;
 
 // redirect the user to the `authorization_endpoint` the first time
 
-let authentication_code = client.extract_authentication_code(&returned_url)?;
-let authentication_tokens = client.do_authentication_token_request(&authentication_code).await?;
+let authorization_code = client.extract_authorization_code(&returned_url)?;
+let authorization_tokens = client.fetch_authorization_tokens(&authorization_code).await?;
 
-println!("{:?}", authentication_tokens.id_token);
-println!("{:?}", authentication_tokens.access_token);
+println!("{:?}", authorization_tokens.id_token);
+println!("{:?}", authorization_tokens.access_token);
 ```
 
 ## RFCs
