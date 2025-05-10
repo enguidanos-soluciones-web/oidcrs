@@ -20,16 +20,20 @@ Work in Progress. Please, don't use it in production.
 ```rs
 let oidc_uri = "https://_/.well-known/openid-configuration";
 
-let client = AuthorizationCodeFlowClient::new(oidc_uri);
-let authentication_request = client.prepare_authentication_request().await?;
+let client = AuthorizationCodeFlowClient::new(oidc_uri)
+    .with_scope(AuthenticationRequestScope::Profile)
+    .with_scope(AuthenticationRequestScope::Email)
+    .with_scope(AuthenticationRequestScope::Unchecked("api://_/.default"));
 
-// redirect the user to the `authentication_request` the first time
+let authorization_endpoint = client.build_authorization_endpoint().await?;
+
+// redirect the user to the `authorization_endpoint` the first time
 
 let authentication_code = client.extract_authentication_code(&returned_url)?;
 let authentication_tokens = client.do_authentication_token_request(&authentication_code).await?;
 
-println!("{}", authentication_tokens.id_token);
-println!("{}", authentication_tokens.access_token);
+println!("{:?}", authentication_tokens.id_token);
+println!("{:?}", authentication_tokens.access_token);
 ```
 
 ## RFCs
