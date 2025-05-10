@@ -4,6 +4,10 @@ Full Spec Compliant OIDC Library.
 
 Work in Progress. Please, don't use it in production.
 
+```rs
+cardo add oidcrs
+```
+
 ## Examples
 
 ##### The Authorization Code Flow.
