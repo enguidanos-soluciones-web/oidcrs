@@ -171,7 +171,6 @@ mod tests {
     }
 }
 
-pub use authorization_code_flow::*;
 pub mod authorization_code_flow {
     use serde::Deserialize;
     use url::Url;
@@ -280,7 +279,7 @@ pub mod authorization_code_flow {
 
             let mut authorization_endpoint = Url::parse(&conf.authorization_endpoint)?;
 
-            if authorization_endpoint.scheme() == "http" {
+            if authorization_endpoint.scheme() != "https" {
                 anyhow::bail!("authorization endpoint must be TLS");
             }
 
@@ -327,7 +326,10 @@ pub mod authorization_code_flow {
         pub fn extract_authorization_code(&self, url: &str) -> anyhow::Result<String> {
             let url = Url::parse(url)?;
 
-            let Some(code) = url.query_pairs().find(|n| n.0 == "code") else {
+            let Some(code) = url
+                .query_pairs()
+                .find(|n| n.0 == AuthenticationRequestParameters::Code.to_string())
+            else {
                 anyhow::bail!("Code not found in provided url");
             };
 
@@ -361,8 +363,8 @@ pub mod authorization_code_flow {
                         oidc_uri_path,
                         get(|| async {
                             Json(json!({
-                                "token_endpoint": "https://_/oauth2/token",
-                                "authorization_endpoint": "https://_/oauth2/authorize"
+                                "token_endpoint": "https://_/token",
+                                "authorization_endpoint": "https://_/authorize"
                             }))
                         }),
                     ),
@@ -397,8 +399,8 @@ pub mod authorization_code_flow {
                         oidc_uri_path,
                         get(|| async {
                             Json(json!({
-                                "token_endpoint": "http://_/oauth2/token",
-                                "authorization_endpoint": "http://_/oauth2/authorize"
+                                "token_endpoint": "http://_/token",
+                                "authorization_endpoint": "http://_/authorize"
                             }))
                         }),
                     ),
@@ -433,8 +435,8 @@ pub mod authorization_code_flow {
                         oidc_uri_path,
                         get(|| async {
                             Json(json!({
-                                "token_endpoint": "https://_/oauth2/token",
-                                "authorization_endpoint": "https://_/oauth2/authorize"
+                                "token_endpoint": "https://_/token",
+                                "authorization_endpoint": "https://_/authorize"
                             }))
                         }),
                     ),
@@ -477,8 +479,8 @@ pub mod authorization_code_flow {
                         oidc_uri_path,
                         get(|| async {
                             Json(json!({
-                                "token_endpoint": "https://_/oauth2/token",
-                                "authorization_endpoint": "https://_/oauth2/authorize"
+                                "token_endpoint": "https://_/token",
+                                "authorization_endpoint": "https://_/authorize"
                             }))
                         }),
                     ),
@@ -521,8 +523,8 @@ pub mod authorization_code_flow {
                         oidc_uri_path,
                         get(|| async {
                             Json(json!({
-                                "token_endpoint": "https://_/oauth2/token",
-                                "authorization_endpoint": "https://_/oauth2/authorize"
+                                "token_endpoint": "https://_/token",
+                                "authorization_endpoint": "https://_/authorize"
                             }))
                         }),
                     ),
@@ -573,8 +575,8 @@ pub mod authorization_code_flow {
                         oidc_uri_path,
                         get(|| async {
                             Json(json!({
-                                "token_endpoint": "https://_/oauth2/token",
-                                "authorization_endpoint": "https://_/oauth2/authorize"
+                                "token_endpoint": "https://_/token",
+                                "authorization_endpoint": "https://_/authorize"
                             }))
                         }),
                     ),
@@ -601,7 +603,7 @@ pub mod authorization_code_flow {
                     .query_pairs()
                     .find(|n| n.0 == AuthenticationRequestParameters::Scope.to_string())
                     .map(|n| n.1.into_owned()),
-                Some(String::from("openid"))
+                Some(AuthenticationRequestScope::OpenID.to_string())
             );
         }
     }
