@@ -5,7 +5,7 @@ Full Spec Compliant OIDC Library.
 Work in Progress. Please, don't use it in production.
 
 ```rs
-cardo add oidcrs
+cargo add oidcrs
 ```
 
 ## Examples
