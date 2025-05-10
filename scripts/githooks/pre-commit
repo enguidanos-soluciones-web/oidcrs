@@ -31,7 +31,7 @@ function rust_diff {
         echo -e "${YELLOW}Se procede a ejecutar el script pre-commit:${NOCOLOR}"
         echo ""
 
-        make rust-pre-commit
+        make pre-commit
 
         git add .
     else
