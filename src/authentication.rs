@@ -382,7 +382,7 @@ pub mod authorization_code_flow {
 
             let client = AuthorizationCodeFlowClient::new(&oidc_uri);
             let authorization_endpoint = client.build_authorization_endpoint().await;
-            assert!(matches!(authorization_endpoint, Ok(_)));
+            assert!(authorization_endpoint.is_ok());
         }
 
         #[tokio::test]
@@ -418,7 +418,7 @@ pub mod authorization_code_flow {
 
             let client = AuthorizationCodeFlowClient::new(&oidc_uri);
             let authorization_endpoint = client.build_authorization_endpoint().await;
-            assert!(matches!(authorization_endpoint, Err(_)));
+            assert!(authorization_endpoint.is_err());
         }
 
         #[tokio::test]

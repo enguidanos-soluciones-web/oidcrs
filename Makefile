@@ -15,6 +15,6 @@ lint:
 	cargo clippy --all-features -- -W clippy::all
 
 test:
-	cargo nextest run
+	cargo nextest run --ff --all-features
 
 pre-commit: check update format lint test

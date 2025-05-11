@@ -405,25 +405,25 @@ mod tests {
     #[test]
     fn issuer_must_be_complaint() {
         let iss = IssuerIdentifier::from_str("http://myissuer.com:443/v2.0");
-        assert!(matches!(iss, Ok(_)))
+        assert!(iss.is_ok());
     }
 
     #[test]
     fn issuer_cant_have_query_component_on_url() {
         let iss = IssuerIdentifier::from_str("http://myissuer.com:443/v2.0?code=1234");
-        assert!(matches!(iss, Err(_)))
+        assert!(iss.is_err());
     }
 
     #[test]
     fn issuer_cant_have_fragment_component_on_url() {
         let iss = IssuerIdentifier::from_str("http://myissuer.com:443/v2.0#code=1234");
-        assert!(matches!(iss, Err(_)))
+        assert!(iss.is_err());
     }
 
     #[test]
     fn subject_must_be_complaint() {
         let sub = SubjectIdentifier::from_str("40ab568a070ba11c1a3ea00f");
-        assert!(matches!(sub, Ok(_)))
+        assert!(sub.is_ok());
     }
 
     #[test]
@@ -440,7 +440,7 @@ e10d36046bba5d3c9db421040f572a9c48
             "#,
         );
 
-        assert!(matches!(sub, Err(_)))
+        assert!(sub.is_err());
     }
 
     #[test]
@@ -457,19 +457,19 @@ e10d36046bba5d3c9db421040f572a9cÉ
             "#,
         );
 
-        assert!(matches!(sub, Err(_)))
+        assert!(sub.is_err());
     }
 
     #[test]
     fn expiration_must_be_complaint() {
         let exp = Expiration::try_from(chrono::Duration::days(600));
-        assert!(matches!(exp, Ok(_)))
+        assert!(exp.is_ok());
     }
 
     #[test]
     fn expiration_duration_must_be_greater_than_10_seconds() {
         let exp = Expiration::try_from(chrono::Duration::seconds(8));
-        assert!(matches!(exp, Err(_)))
+        assert!(exp.is_err());
     }
 
     #[test]
