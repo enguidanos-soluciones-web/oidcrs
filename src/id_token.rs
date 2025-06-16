@@ -275,7 +275,6 @@ impl<'de> Visitor<'de> for AudienceVisitor {
     }
 }
 
-// Ahora implementamos Deserialize usando nuestro visitante personalizado
 impl<'de> Deserialize<'de> for Audience {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
