@@ -44,13 +44,13 @@
 
 use derive_more::Display;
 
-pub enum AuthenticationFlow {
+pub enum AuthorizationFlow {
     AuthorizationCodeFlow,
     ImplicitFlow { token: bool },
     HybridFlow { token: bool, id_token: bool },
 }
 
-impl AuthenticationFlow {
+impl AuthorizationFlow {
     pub fn as_reponse_type(&self) -> &'static str {
         match self {
             Self::AuthorizationCodeFlow => "code",
@@ -82,7 +82,7 @@ impl AuthenticationFlow {
 }
 
 #[derive(Display)]
-pub enum AuthenticationRequestParameters {
+pub enum AuthorizationRequestParameters {
     #[display("code")]
     Code,
     #[display("response_type")]
@@ -92,7 +92,7 @@ pub enum AuthenticationRequestParameters {
 }
 
 #[derive(Display)]
-pub enum AuthenticationRequestScope {
+pub enum AuthorizationRequestScope {
     #[display("openid")]
     OpenID,
     #[display("profile")]
@@ -112,29 +112,26 @@ pub enum AuthenticationRequestScope {
 #[cfg(test)]
 mod tests {
 
-    use super::AuthenticationFlow;
+    use super::AuthorizationFlow;
 
     use pretty_assertions::assert_eq;
 
     #[test]
     fn check_response_type_of_authorization_code_flow() {
-        assert_eq!(AuthenticationFlow::AuthorizationCodeFlow.as_reponse_type(), "code");
+        assert_eq!(AuthorizationFlow::AuthorizationCodeFlow.as_reponse_type(), "code");
     }
     #[test]
     fn check_response_type_of_implicit_flow() {
+        assert_eq!(AuthorizationFlow::ImplicitFlow { token: false }.as_reponse_type(), "id_token");
         assert_eq!(
-            AuthenticationFlow::ImplicitFlow { token: false }.as_reponse_type(),
-            "id_token"
-        );
-        assert_eq!(
-            AuthenticationFlow::ImplicitFlow { token: true }.as_reponse_type(),
+            AuthorizationFlow::ImplicitFlow { token: true }.as_reponse_type(),
             "id_token token"
         );
     }
     #[test]
     fn check_response_type_of_hybrid_flow() {
         assert_eq!(
-            AuthenticationFlow::HybridFlow {
+            AuthorizationFlow::HybridFlow {
                 token: false,
                 id_token: false
             }
@@ -143,7 +140,7 @@ mod tests {
         );
 
         assert_eq!(
-            AuthenticationFlow::HybridFlow {
+            AuthorizationFlow::HybridFlow {
                 token: true,
                 id_token: false
             }
@@ -152,7 +149,7 @@ mod tests {
         );
 
         assert_eq!(
-            AuthenticationFlow::HybridFlow {
+            AuthorizationFlow::HybridFlow {
                 token: false,
                 id_token: true
             }
@@ -161,7 +158,7 @@ mod tests {
         );
 
         assert_eq!(
-            AuthenticationFlow::HybridFlow {
+            AuthorizationFlow::HybridFlow {
                 token: true,
                 id_token: true
             }
@@ -175,9 +172,9 @@ pub mod authorization_code_flow {
     use serde::Deserialize;
     use url::Url;
 
-    use crate::{config, id_token};
+    use crate::oidc::{discovery, id_token};
 
-    use super::{AuthenticationFlow, AuthenticationRequestParameters, AuthenticationRequestScope};
+    use super::{AuthorizationFlow, AuthorizationRequestParameters, AuthorizationRequestScope};
 
     #[derive(Deserialize)]
     pub struct AuthorizationCodeFlowTokenResponse {
@@ -217,19 +214,19 @@ pub mod authorization_code_flow {
     /// ```
     #[non_exhaustive]
     pub struct AuthorizationCodeFlowClient {
-        flow: AuthenticationFlow,
+        flow: AuthorizationFlow,
         http: reqwest::Client,
         oidc_uri: String,
-        scopes: Vec<AuthenticationRequestScope>,
+        scopes: Vec<AuthorizationRequestScope>,
     }
 
     impl AuthorizationCodeFlowClient {
         pub fn new(oidc_uri: &str) -> Self {
             Self {
-                flow: AuthenticationFlow::AuthorizationCodeFlow,
+                flow: AuthorizationFlow::AuthorizationCodeFlow,
                 http: reqwest::Client::new(),
                 oidc_uri: oidc_uri.to_owned(),
-                scopes: vec![AuthenticationRequestScope::OpenID],
+                scopes: vec![AuthorizationRequestScope::OpenID],
             }
         }
 
@@ -254,9 +251,9 @@ pub mod authorization_code_flow {
         ///         .with_scope(Scope::Phone);
         ///
         /// ```
-        pub fn with_scope(mut self, s: AuthenticationRequestScope) -> Self {
+        pub fn with_scope(mut self, s: AuthorizationRequestScope) -> Self {
             match s {
-                AuthenticationRequestScope::OpenID => self,
+                AuthorizationRequestScope::OpenID => self,
                 _ => {
                     self.scopes.push(s);
                     self
@@ -275,7 +272,7 @@ pub mod authorization_code_flow {
         /// [Section 16.17](https://openid.net/specs/openid-connect-core-1_0.html#TLSRequirements)
         /// for more information on using TLS.
         pub async fn build_authorization_endpoint(&self) -> anyhow::Result<Url> {
-            let conf = config::OpenIDConfiguration::from_remote(&self.http, &self.oidc_uri).await?;
+            let conf = discovery::OpenIDConnectEndpoints::from_remote(&self.http, &self.oidc_uri).await?;
 
             let mut authorization_endpoint = Url::parse(&conf.authorization_endpoint)?;
 
@@ -285,11 +282,11 @@ pub mod authorization_code_flow {
 
             let request_params = [
                 (
-                    AuthenticationRequestParameters::Scope.to_string(),
+                    AuthorizationRequestParameters::Scope.to_string(),
                     self.scopes.iter().map(|n| n.to_string()).collect::<Vec<String>>().join(" "),
                 ),
                 (
-                    AuthenticationRequestParameters::ResponseType.to_string(),
+                    AuthorizationRequestParameters::ResponseType.to_string(),
                     self.flow.as_reponse_type().to_owned(),
                 ),
             ];
@@ -302,9 +299,9 @@ pub mod authorization_code_flow {
         }
 
         pub async fn fetch_authorization_tokens(&self, code: &str) -> anyhow::Result<AuthorizationCodeFlowTokenResponse> {
-            let conf = config::OpenIDConfiguration::from_remote(&self.http, &self.oidc_uri).await?;
+            let conf = discovery::OpenIDConnectEndpoints::from_remote(&self.http, &self.oidc_uri).await?;
             let mut token_endpoint = Url::parse(&conf.token_endpoint)?;
-            let request_params = [(AuthenticationRequestParameters::Code.to_string(), code)];
+            let request_params = [(AuthorizationRequestParameters::Code.to_string(), code)];
 
             for (key, value) in request_params.iter() {
                 token_endpoint.query_pairs_mut().append_pair(key, value);
@@ -328,7 +325,7 @@ pub mod authorization_code_flow {
 
             let Some(code) = url
                 .query_pairs()
-                .find(|n| n.0 == AuthenticationRequestParameters::Code.to_string())
+                .find(|n| n.0 == AuthorizationRequestParameters::Code.to_string())
             else {
                 anyhow::bail!("Code not found in provided url");
             };
@@ -343,7 +340,7 @@ pub mod authorization_code_flow {
         use serde_json::json;
         use tokio::net::TcpListener;
 
-        use crate::authentication::{AuthenticationRequestParameters, AuthenticationRequestScope};
+        use crate::oidc::authentication::{AuthorizationRequestParameters, AuthorizationRequestScope};
 
         use super::AuthorizationCodeFlowClient;
 
@@ -459,7 +456,7 @@ pub mod authorization_code_flow {
             assert_eq!(
                 authorization_endpoint
                     .query_pairs()
-                    .find(|n| n.0 == AuthenticationRequestParameters::ResponseType.to_string())
+                    .find(|n| n.0 == AuthorizationRequestParameters::ResponseType.to_string())
                     .map(|n| n.1.into_owned()),
                 Some(String::from("code"))
             );
@@ -503,9 +500,9 @@ pub mod authorization_code_flow {
             assert_eq!(
                 authorization_endpoint
                     .query_pairs()
-                    .find(|n| n.0 == AuthenticationRequestParameters::Scope.to_string())
+                    .find(|n| n.0 == AuthorizationRequestParameters::Scope.to_string())
                     .map(|n| n.1.into_owned()),
-                Some(AuthenticationRequestScope::OpenID.to_string())
+                Some(AuthorizationRequestScope::OpenID.to_string())
             );
         }
 
@@ -541,19 +538,19 @@ pub mod authorization_code_flow {
             );
 
             let client = AuthorizationCodeFlowClient::new(&oidc_uri)
-                .with_scope(AuthenticationRequestScope::Email)
-                .with_scope(AuthenticationRequestScope::Address)
-                .with_scope(AuthenticationRequestScope::Phone)
-                .with_scope(AuthenticationRequestScope::Profile)
-                .with_scope(AuthenticationRequestScope::OfflineAccess)
-                .with_scope(AuthenticationRequestScope::Unchecked("api://_/.default"));
+                .with_scope(AuthorizationRequestScope::Email)
+                .with_scope(AuthorizationRequestScope::Address)
+                .with_scope(AuthorizationRequestScope::Phone)
+                .with_scope(AuthorizationRequestScope::Profile)
+                .with_scope(AuthorizationRequestScope::OfflineAccess)
+                .with_scope(AuthorizationRequestScope::Unchecked("api://_/.default"));
 
             let authorization_endpoint = client.build_authorization_endpoint().await.unwrap();
 
             assert_eq!(
                 authorization_endpoint
                     .query_pairs()
-                    .find(|n| n.0 == AuthenticationRequestParameters::Scope.to_string())
+                    .find(|n| n.0 == AuthorizationRequestParameters::Scope.to_string())
                     .map(|n| n.1.into_owned()),
                 Some(String::from(
                     "openid email address phone profile offline_access api://_/.default"
@@ -593,17 +590,17 @@ pub mod authorization_code_flow {
             );
 
             let client = AuthorizationCodeFlowClient::new(&oidc_uri)
-                .with_scope(AuthenticationRequestScope::OpenID)
-                .with_scope(AuthenticationRequestScope::OpenID);
+                .with_scope(AuthorizationRequestScope::OpenID)
+                .with_scope(AuthorizationRequestScope::OpenID);
 
             let authorization_endpoint = client.build_authorization_endpoint().await.unwrap();
 
             assert_eq!(
                 authorization_endpoint
                     .query_pairs()
-                    .find(|n| n.0 == AuthenticationRequestParameters::Scope.to_string())
+                    .find(|n| n.0 == AuthorizationRequestParameters::Scope.to_string())
                     .map(|n| n.1.into_owned()),
-                Some(AuthenticationRequestScope::OpenID.to_string())
+                Some(AuthorizationRequestScope::OpenID.to_string())
             );
         }
     }

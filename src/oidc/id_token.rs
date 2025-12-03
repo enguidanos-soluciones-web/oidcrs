@@ -394,7 +394,7 @@ impl<'de> Deserialize<'de> for Nonce {
 
 #[cfg(test)]
 mod tests {
-    use crate::id_token::{Expiration, IssuedAt, SubjectIdentifier};
+    use crate::oidc::id_token::{Expiration, IssuedAt, SubjectIdentifier};
     use pretty_assertions::assert_eq;
     use serde_json::json;
     use std::str::FromStr;

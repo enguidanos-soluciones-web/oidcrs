@@ -22,6 +22,8 @@ cargo add oidcrs
 8. Client validates the ID token and retrieves the End-User's Subject Identifier.
 
 ```rs
+use oidcrs::oidc::authentication::{AuthorizationCodeFlowClient, AuthenticationRequestScope};
+
 let oidc_uri = "https://_/.well-known/openid-configuration";
 
 let client = AuthorizationCodeFlowClient::new(oidc_uri)
